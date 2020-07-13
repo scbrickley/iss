@@ -3,20 +3,26 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	ORG        = "Myself"
-	BUCKET     = "ISS"
-	TOKEN_FILE = "/Users/seanbrickley/.tok/ossinflux"
+var (
+	org    = flag.String("org", "Home", "Name of the organization that owns the bucket")
+	bucket = flag.String("bucket", "ISS", "Name of the bucket you want to write the data to")
+	url    = flag.String("url", "localhost:9999/", "Base URL for your InfluxDB instance")
+	auth   = flag.String("auth", "", "Path to an plain text file that holds your auth token (and nothing else)")
 )
+
+func init() {
+	flag.Parse()
+}
 
 type issPos struct {
 	Lat  string `json:"latitude"`
@@ -39,7 +45,7 @@ func main() {
 	buf := bytes.NewBufferString("")
 
 	// Declare incrementer outside the loop. We want to run the loop
-	// indefinitely, but send the data in batches, to reduce the number 
+	// indefinitely, but send the data in batches, to reduce the number
 	// of requests. The iterator will be reset periodically when the data
 	// is flushed.
 	i := 0
@@ -74,17 +80,18 @@ func send(buf *bytes.Buffer) {
 
 	client := &http.Client{}
 
-	url := fmt.Sprintf(
-		"http://localhost:9999/api/v2/write?org=%s&bucket=%s&precision=s",
-		ORG,
-		BUCKET,
+	writeAPI := fmt.Sprintf(
+		"%s/api/v2/write?org=%s&bucket=%s&precision=s",
+		*url,
+		*org,
+		*bucket,
 	)
 
-	req, err := http.NewRequest("POST", url, buf)
+	req, err := http.NewRequest("POST", writeAPI, buf)
 	check(err)
 
 	// Set the Authentication header
-	req.Header.Set("Authorization", "Token " + tok())
+	req.Header.Set("Authorization", "Token "+tok())
 	_, err = client.Do(req)
 	check(err)
 
@@ -95,9 +102,9 @@ func send(buf *bytes.Buffer) {
 func issData() (issInfo, error) {
 	// issInfo struct to return if something goes wrong,
 	// since we can't just return `nil`
-	errStruct := issInfo {
+	errStruct := issInfo{
 		Timestamp: 0,
-		Pos: issPos {
+		Pos: issPos{
 			Lat:  "0.0",
 			Long: "0.0",
 		},
@@ -132,7 +139,7 @@ func (i issInfo) toLineProtocol() string {
 }
 
 func tok() string {
-	token, err := ioutil.ReadFile(TOKEN_FILE)
+	token, err := ioutil.ReadFile(*auth)
 	if err != nil {
 		return ""
 	}
