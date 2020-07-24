@@ -99,35 +99,24 @@ func send(buf *bytes.Buffer) {
 	buf.Reset()
 }
 
-func issData() (issInfo, error) {
-	// issInfo struct to return if something goes wrong,
-	// since we can't just return `nil`
-	errStruct := issInfo{
-		Timestamp: 0,
-		Pos: issPos{
-			Lat:  "0.0",
-			Long: "0.0",
-		},
-	}
-
+func issData() (*issInfo, error) {
 	resp, err := http.Get("http://api.open-notify.org/iss-now.json")
 	if err != nil {
-		return errStruct, err
+		return nil, err
 	}
 
 	info, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errStruct, err
+		return nil, err
 	}
 
 	var position issInfo
-
 	err = json.Unmarshal(info, &position)
 	if err != nil {
-		return errStruct, err
+		return nil, err
 	}
 
-	return position, nil
+	return &position, nil
 }
 
 func (i issInfo) toLineProtocol() string {
