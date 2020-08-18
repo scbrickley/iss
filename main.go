@@ -81,7 +81,7 @@ func send(buf *bytes.Buffer) {
 	client := &http.Client{}
 
 	writeAPI := fmt.Sprintf(
-		"%s/api/v2/write?org=%s&bucket=%s&precision=s",
+		"http://%s/api/v2/write?org=%s&bucket=%s&precision=s",
 		*url,
 		*org,
 		*bucket,
