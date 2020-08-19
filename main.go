@@ -16,7 +16,7 @@ import (
 var (
 	org    = flag.String("org", "Home", "Name of the organization that owns the bucket")
 	bucket = flag.String("bucket", "ISS", "Name of the bucket you want to write the data to")
-	url    = flag.String("url", "localhost:9999/", "Base URL for your InfluxDB instance")
+	url    = flag.String("url", "localhost:9999", "Base URL for your InfluxDB instance")
 	auth   = flag.String("auth", "", "Path to an plain text file that holds your auth token (and nothing else)")
 )
 
