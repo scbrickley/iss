@@ -76,8 +76,6 @@ func main() {
 }
 
 func send(buf *bytes.Buffer) {
-	log.Infof("Writing data to InfluxDB API v2")
-
 	client := &http.Client{}
 
 	writeAPI := fmt.Sprintf(
@@ -86,6 +84,7 @@ func send(buf *bytes.Buffer) {
 		*org,
 		*bucket,
 	)
+	log.Infof("Writing data to %s", writeAPI)
 
 	req, err := http.NewRequest("POST", writeAPI, buf)
 	check(err)
